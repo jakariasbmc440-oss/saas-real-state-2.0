@@ -1,12 +1,12 @@
 {
-  "name": "store-management-saas-root",
+  "name": "store-management-saas",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
-    "build": "npm --prefix frontend install && npm --prefix frontend run build",
-    "preview": "npm --prefix frontend run preview"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.3.1",
