@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch StoreIQ (Vite Dev Server)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Launch Chrome with localhost",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend/src"
+    }
+  ]
+}

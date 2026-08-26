@@ -1,0 +1,21 @@
+export const ROUTES = {
+  HOME: '/',
+  LOGIN: '/login',
+  UNAUTHORIZED: '/unauthorized',
+  DASHBOARD: '/dashboard',
+  PRODUCTS: '/products',
+  PRODUCT_NEW: '/products/new',
+  PRODUCT_EDIT: (id) => `/products/${id}/edit`,
+  CATEGORIES: '/categories',
+  STOCK_IN: '/stock/in',
+  STOCK_OUT: '/stock/out',
+  TRANSFERS: '/transfers',
+  INVENTORY: '/inventory',
+  HISTORY: '/history',
+  USERS: '/users',
+  STORES: '/stores',
+  SUPPLIERS: '/suppliers',
+  REPORTS: '/reports',
+  SETTINGS: '/settings',
+  AUDIT_LOG: '/audit-log'
+};
