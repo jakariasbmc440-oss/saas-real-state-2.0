@@ -2,30 +2,72 @@ import { TRANSACTION_TYPES } from '../config/constants.js';
 
 export const DEMO_MODE = true;
 
-const mockUsers = [
-  { user_id: 'USR001', name: 'Admin User', role: 'COMPANY_ADMIN', email: 'admin@demo.com', store_id: 'STR001', company_id: 'CMP001' },
-  { user_id: 'USR002', name: 'Rahim Khan', role: 'MANAGER', email: 'manager@demo.com', store_id: 'STR001', company_id: 'CMP001' },
-  { user_id: 'USR003', name: 'Karim Ahmed', role: 'STAFF', email: 'staff@demo.com', store_id: 'STR002', company_id: 'CMP001' },
-  { user_id: 'USR004', name: 'Sara Begum', role: 'VIEWER', email: 'viewer@demo.com', store_id: 'STR001', company_id: 'CMP001' }
+const defaultUsers = [
+  { user_id: 'USR001', name: 'Admin User', role: 'COMPANY_ADMIN', email: 'admin@demo.com', password: 'demo123', store_id: 'STR001', company_id: 'CMP001', status: 'ACTIVE' },
+  { user_id: 'USR002', name: 'Rahim Khan', role: 'MANAGER', email: 'manager@demo.com', password: 'demo123', store_id: 'STR001', company_id: 'CMP001', status: 'ACTIVE' },
+  { user_id: 'USR003', name: 'Karim Ahmed', role: 'STAFF', email: 'staff@demo.com', password: 'demo123', store_id: 'STR002', company_id: 'CMP001', status: 'ACTIVE' },
+  { user_id: 'USR004', name: 'Sara Begum', role: 'VIEWER', email: 'viewer@demo.com', password: 'demo123', store_id: 'STR001', company_id: 'CMP001', status: 'ACTIVE' }
 ];
 
 export async function apiCall(action, payload = {}) {
   const token = localStorage.getItem('token');
   
   if (DEMO_MODE) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
         switch (action) {
           case 'login': {
-            const email = payload.email || 'admin@demo.com';
-            const user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase()) || mockUsers[0];
-            resolve({ user, token: `demo-token-${user.role.toLowerCase()}` });
+            const { email, password } = payload;
+            if (!email || !password) {
+              return reject(new Error('ইমেইল এবং পাসওয়ার্ড উভয়ই প্রয়োজন (Email and password are required)'));
+            }
+
+            // Look up in persisted DataContext store first, then fallback to defaults
+            let currentUsers = defaultUsers;
+            try {
+              const saved = localStorage.getItem('storeiq_saas_data_v1');
+              if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.users && parsed.users.length > 0) {
+                  currentUsers = parsed.users;
+                }
+              }
+            } catch (e) {
+              console.error('Failed to read users store', e);
+            }
+
+            const cleanEmail = email.trim().toLowerCase();
+            const user = currentUsers.find(u => (u.email || '').trim().toLowerCase() === cleanEmail);
+
+            if (!user) {
+              return reject(new Error('ভুল ইমেইল! এই ইমেইলে কোনো অ্যাকাউন্ট পাওয়া যায়নি। (User not found)'));
+            }
+
+            if (user.status !== 'ACTIVE') {
+              return reject(new Error('এই অ্যাকাউন্টটি নিষ্ক্রিয় (Inactive) করা আছে। অ্যাডমিনের সাথে যোগাযোগ করুন।'));
+            }
+
+            // In demo mode, standard password is demo123 (or user.password if set)
+            const expectedPassword = user.password || 'demo123';
+            if (password !== expectedPassword && password !== 'demo123') {
+              return reject(new Error('ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন। (Incorrect password)'));
+            }
+
+            const safeUser = { ...user };
+            delete safeUser.password;
+            delete safeUser.password_hash;
+
+            resolve({
+              user: safeUser,
+              token: `auth_token_${safeUser.user_id}_${Date.now()}`
+            });
             break;
           }
+
           default:
             resolve({});
         }
-      }, 200);
+      }, 300);
     });
   }
 
@@ -39,7 +81,7 @@ export async function apiCall(action, payload = {}) {
     });
     const result = await response.json();
     if (result.success === false) {
-      throw new Error(result.error || 'API Error');
+      throw new Error(result.error?.message || result.error || 'API Error');
     }
     return result.data;
   } catch (err) {

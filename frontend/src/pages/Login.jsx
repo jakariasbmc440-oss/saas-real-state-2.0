@@ -1,39 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Shield, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
+import { Package, Lock, AlertCircle, KeyRound, Mail } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
 export default function Login() {
-  const [email, setEmail] = useState('admin@demo.com');
-  const [password, setPassword] = useState('demo123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
-    try {
-      if (login) await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setErrorMessage(null);
 
-  const handleQuickLogin = async (roleEmail) => {
-    setEmail(roleEmail);
-    setPassword('demo123');
-    setIsLoading(true);
     try {
-      if (login) await login(roleEmail, 'demo123');
-      navigate('/dashboard');
+      if (!email.trim() || !password) {
+        throw new Error('Please enter both email and password.');
+      }
+      await login(email.trim(), password);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setErrorMessage(err.message || 'Invalid email or password. Access denied.');
     } finally {
       setIsLoading(false);
     }
@@ -50,89 +40,90 @@ export default function Login() {
             Sign in to StoreIQ
           </h1>
           <p className="text-xs text-gray-500">
-            Multi-Tenant Store & Inventory Management Platform
+            Enter your company credentials to access your store inventory
           </p>
         </div>
 
-        {error && (
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-            {error}
+        {errorMessage && (
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-2.5 text-xs font-medium">
+            <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+            <p>{errorMessage}</p>
           </div>
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-              Email Address
+              Email Address *
             </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="name@company.com"
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 pl-9 pr-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="e.g. admin@demo.com"
+              />
+            </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">
-              Password
+              Password *
             </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 pl-9 pr-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="••••••••"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-500 transition-colors disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50"
           >
-            <Lock className="h-4 w-4" />
-            {isLoading ? 'Authenticating...' : 'Sign In'}
+            <KeyRound className="h-4 w-4" />
+            {isLoading ? 'Verifying Credentials...' : 'Sign In'}
           </button>
         </form>
 
-        {/* Quick Demo Role Selector */}
-        <div className="pt-4 border-t border-gray-100">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 text-center mb-3">
-            Quick Demo Login (Click to Switch Role)
+        {/* Authorized Roles & Access Reference */}
+        <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 space-y-2">
+          <p className="font-semibold text-gray-700 uppercase tracking-wider text-[11px]">
+            Default Authorized Company Accounts:
           </p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              onClick={() => handleQuickLogin('admin@demo.com')}
-              className="p-2 rounded-lg border border-gray-200 text-left hover:bg-blue-50 hover:border-blue-300 transition-all"
-            >
-              <strong className="block text-gray-900">Admin</strong>
-              <span className="text-gray-500 text-[11px]">Full access</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin('manager@demo.com')}
-              className="p-2 rounded-lg border border-gray-200 text-left hover:bg-blue-50 hover:border-blue-300 transition-all"
-            >
-              <strong className="block text-gray-900">Manager</strong>
-              <span className="text-gray-500 text-[11px]">Stock & Transfers</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin('staff@demo.com')}
-              className="p-2 rounded-lg border border-gray-200 text-left hover:bg-blue-50 hover:border-blue-300 transition-all"
-            >
-              <strong className="block text-gray-900">Staff</strong>
-              <span className="text-gray-500 text-[11px]">Store In / Out</span>
-            </button>
-            <button
-              onClick={() => handleQuickLogin('viewer@demo.com')}
-              className="p-2 rounded-lg border border-gray-200 text-left hover:bg-blue-50 hover:border-blue-300 transition-all"
-            >
-              <strong className="block text-gray-900">Viewer</strong>
-              <span className="text-gray-500 text-[11px]">Read-only reports</span>
-            </button>
+          <div className="rounded-lg bg-gray-50 p-3 space-y-1.5 font-mono text-[11px]">
+            <div className="flex justify-between">
+              <span className="text-gray-700 font-sans">👑 Admin:</span>
+              <span className="text-blue-600">admin@demo.com</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700 font-sans">👔 Manager:</span>
+              <span className="text-blue-600">manager@demo.com</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700 font-sans">📦 Staff:</span>
+              <span className="text-blue-600">staff@demo.com</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700 font-sans">👁️ Viewer:</span>
+              <span className="text-blue-600">viewer@demo.com</span>
+            </div>
+            <div className="pt-1 border-t border-gray-200 text-gray-600 font-sans text-[11px] flex justify-between">
+              <span>Password:</span>
+              <strong className="font-mono text-gray-800">demo123</strong>
+            </div>
           </div>
         </div>
       </div>
