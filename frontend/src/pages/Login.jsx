@@ -18,7 +18,7 @@ export default function Login() {
 
     try {
       if (!email.trim() || !password) {
-        throw new Error('Please enter both email and password.');
+        throw new Error('Please enter both email address and password.');
       }
       await login(email.trim(), password);
       navigate('/dashboard', { replace: true });
@@ -65,7 +65,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 pl-9 pr-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="e.g. admin@demo.com"
+                placeholder="name@company.com"
               />
             </div>
           </div>
@@ -97,35 +97,6 @@ export default function Login() {
             {isLoading ? 'Verifying Credentials...' : 'Sign In'}
           </button>
         </form>
-
-        {/* Authorized Roles & Access Reference */}
-        <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 space-y-2">
-          <p className="font-semibold text-gray-700 uppercase tracking-wider text-[11px]">
-            Default Authorized Company Accounts:
-          </p>
-          <div className="rounded-lg bg-gray-50 p-3 space-y-1.5 font-mono text-[11px]">
-            <div className="flex justify-between">
-              <span className="text-gray-700 font-sans">👑 Admin:</span>
-              <span className="text-blue-600">admin@demo.com</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-700 font-sans">👔 Manager:</span>
-              <span className="text-blue-600">manager@demo.com</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-700 font-sans">📦 Staff:</span>
-              <span className="text-blue-600">staff@demo.com</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-700 font-sans">👁️ Viewer:</span>
-              <span className="text-blue-600">viewer@demo.com</span>
-            </div>
-            <div className="pt-1 border-t border-gray-200 text-gray-600 font-sans text-[11px] flex justify-between">
-              <span>Password:</span>
-              <strong className="font-mono text-gray-800">demo123</strong>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
