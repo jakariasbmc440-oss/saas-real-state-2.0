@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Plus, Search, Filter, Edit2, Trash2, Eye } from 'lucide-react';
+import { Package, Plus, Search, Filter, Edit2, Trash2, Power, AlertTriangle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
 export default function ProductList() {
-  const { getAllProductsWithStock, categories, deleteProduct, settings } = useData();
+  const { getAllProductsWithStock, categories, deactivateProduct, deleteProductPermanently, settings } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -22,6 +22,20 @@ export default function ProductList() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const handleDeletePermanently = (p) => {
+    if (window.confirm(`⚠️ আপনি কি নিশ্চিত যে "${p.product_name}" স্থায়ীভাবে ডিলিট করতে চান? এটি ক্যাটাগরি এবং তালিকা থেকে সম্পূর্ণ মুছে যাবে।`)) {
+      deleteProductPermanently(p.product_id);
+    }
+  };
+
+  const handleDeactivate = (p) => {
+    const newStatus = p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const actionName = p.status === 'ACTIVE' ? 'ডিঅ্যাক্টিভ' : 'অ্যাক্টিভ';
+    if (window.confirm(`আপনি কি "${p.product_name}" প্রোডাক্টটি ${actionName} করতে চান?`)) {
+      deactivateProduct(p.product_id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -33,7 +47,7 @@ export default function ProductList() {
             Products Catalog
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage your product inventory definitions, SKUs, pricing, and live on-hand quantities.
+            Manage product definitions, SKUs, prices, active status, or delete catalog items.
           </p>
         </div>
         <Link
@@ -92,7 +106,6 @@ export default function ProductList() {
                 <th className="px-6 py-3.5">SKU / Barcode</th>
                 <th className="px-6 py-3.5">Category</th>
                 <th className="px-6 py-3.5 text-right">Current Stock</th>
-                <th className="px-6 py-3.5 text-right">Min Stock</th>
                 <th className="px-6 py-3.5 text-right">Selling Price</th>
                 <th className="px-6 py-3.5 text-center">Status</th>
                 <th className="px-6 py-3.5 text-right">Actions</th>
@@ -101,7 +114,7 @@ export default function ProductList() {
             <tbody className="divide-y divide-gray-100">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan="7" className="px-6 py-8 text-center text-sm text-gray-500">
                     No products found matching your search.
                   </td>
                 </tr>
@@ -129,21 +142,18 @@ export default function ProductList() {
                         {p.current_stock} {p.unit}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right text-gray-500">
-                      {p.minimum_stock} {p.unit}
-                    </td>
                     <td className="px-6 py-4 text-right font-medium text-gray-900">
                       {settings.currency_symbol || '৳'}{Number(p.selling_price).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        p.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        p.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                       }`}>
                         {p.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Link
                           to={`/products/${p.product_id}/edit`}
                           className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-blue-600 transition-colors"
@@ -152,13 +162,16 @@ export default function ProductList() {
                           <Edit2 className="h-4 w-4" />
                         </Link>
                         <button
-                          onClick={() => {
-                            if (window.confirm(`Deactivate product ${p.product_name}?`)) {
-                              deleteProduct(p.product_id);
-                            }
-                          }}
-                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-rose-600 transition-colors"
-                          title="Deactivate Product"
+                          onClick={() => handleDeactivate(p)}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-amber-600 transition-colors"
+                          title="Toggle Active/Inactive"
+                        >
+                          <Power className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePermanently(p)}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                          title="Delete Product Permanently"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

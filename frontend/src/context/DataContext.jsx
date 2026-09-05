@@ -35,10 +35,10 @@ const INITIAL_DATA = {
     { product_id: 'PRD005', company_id: 'CMP001', category_id: 'CAT003', product_name: 'Ergonomic Office Chair', sku: 'OC-001', barcode: '89012345005', unit: 'Piece', minimum_stock: 10, maximum_stock: 30, purchase_price: 5000, selling_price: 7500, status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' }
   ],
   users: [
-    { user_id: 'USR001', company_id: 'CMP001', name: 'Admin User', email: 'admin@demo.com', phone: '+880 1711-111111', role: 'COMPANY_ADMIN', store_id: 'STR001', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
-    { user_id: 'USR002', company_id: 'CMP001', name: 'Rahim Khan', email: 'manager@demo.com', phone: '+880 1722-222222', role: 'MANAGER', store_id: 'STR001', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
-    { user_id: 'USR003', company_id: 'CMP001', name: 'Karim Ahmed', email: 'staff@demo.com', phone: '+880 1733-333333', role: 'STAFF', store_id: 'STR002', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
-    { user_id: 'USR004', company_id: 'CMP001', name: 'Sara Begum', email: 'viewer@demo.com', phone: '+880 1744-444444', role: 'VIEWER', store_id: 'STR001', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' }
+    { user_id: 'USR001', company_id: 'CMP001', name: 'Admin User', email: 'admin@demo.com', password: 'demo123', phone: '+880 1711-111111', role: 'COMPANY_ADMIN', store_id: 'STR001', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
+    { user_id: 'USR002', company_id: 'CMP001', name: 'Rahim Khan', email: 'manager@demo.com', password: 'demo123', phone: '+880 1722-222222', role: 'MANAGER', store_id: 'STR001', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
+    { user_id: 'USR003', company_id: 'CMP001', name: 'Karim Ahmed', email: 'staff@demo.com', password: 'demo123', phone: '+880 1733-333333', role: 'STAFF', store_id: 'STR002', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
+    { user_id: 'USR004', company_id: 'CMP001', name: 'Sara Begum', email: 'viewer@demo.com', password: 'demo123', phone: '+880 1744-444444', role: 'VIEWER', store_id: 'STR001', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' }
   ],
   suppliers: [
     { supplier_id: 'SUP001', company_id: 'CMP001', supplier_name: 'Tech Supplies Ltd.', phone: '+880 1711-000001', email: 'sales@techsupplies.com', address: 'BCS Computer City, IDB Bhaban, Dhaka', status: 'ACTIVE', created_at: '2026-08-01T10:00:00.000+06:00' },
@@ -517,12 +517,21 @@ export function DataProvider({ children }) {
     addAuditLog('UPDATE_PRODUCT', 'PRODUCT', product_id, `Updated product fields`);
   };
 
-  const deleteProduct = (product_id) => {
+  const deactivateProduct = (product_id) => {
     setData(prev => ({
       ...prev,
       products: prev.products.map(p => p.product_id === product_id ? { ...p, status: 'INACTIVE' } : p)
     }));
     addAuditLog('DEACTIVATE_PRODUCT', 'PRODUCT', product_id, `Deactivated product`);
+  };
+
+  const deleteProductPermanently = (product_id) => {
+    const product = data.products.find(p => p.product_id === product_id);
+    setData(prev => ({
+      ...prev,
+      products: prev.products.filter(p => p.product_id !== product_id)
+    }));
+    addAuditLog('DELETE_PRODUCT', 'PRODUCT', product_id, `Permanently deleted product "${product ? product.product_name : product_id}"`);
   };
 
   const addCategory = (catData) => {
@@ -576,10 +585,11 @@ export function DataProvider({ children }) {
       company_id: data.company.company_id,
       name: userData.name,
       email: userData.email,
+      password: userData.password || 'demo123',
       phone: userData.phone || '',
       role: userData.role || 'STAFF',
       store_id: userData.store_id || data.stores[0]?.store_id,
-      status: 'ACTIVE',
+      status: userData.status || 'ACTIVE',
       created_at: new Date().toISOString()
     };
     setData(prev => ({ ...prev, users: [...prev.users, newUser] }));
@@ -593,6 +603,15 @@ export function DataProvider({ children }) {
       users: prev.users.map(u => u.user_id === user_id ? { ...u, ...updates } : u)
     }));
     addAuditLog('UPDATE_USER', 'USER', user_id, `Updated user details`);
+  };
+
+  const deleteUser = (user_id) => {
+    const target = data.users.find(u => u.user_id === user_id);
+    setData(prev => ({
+      ...prev,
+      users: prev.users.filter(u => u.user_id !== user_id)
+    }));
+    addAuditLog('DELETE_USER', 'USER', user_id, `Permanently deleted user "${target ? target.name : user_id}"`);
   };
 
   const addSupplier = (supData) => {
@@ -666,13 +685,15 @@ export function DataProvider({ children }) {
       cancelTransfer,
       addProduct,
       updateProduct,
-      deleteProduct,
+      deactivateProduct,
+      deleteProductPermanently,
       addCategory,
       updateCategory,
       addStore,
       updateStore,
       addUser,
       updateUser,
+      deleteUser,
       addSupplier,
       updateSupplier,
       updateCompany,
