@@ -1,5 +1,5 @@
 export const APP_NAME = 'StoreIQ';
-export const API_BASE_URL = ''; // Empty for Apps Script URL
+export const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzr2D9CMDMLGowjWnLEwjXTIP6oGtHDgr5mBimXW_m5kdKF13kjPTU912bs3t8bicJG/exec';
 
 export const ROLES = {
   SUPER_ADMIN: 'SUPER_ADMIN',

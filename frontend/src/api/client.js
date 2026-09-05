@@ -1,4 +1,4 @@
-import { TRANSACTION_TYPES } from '../config/constants.js';
+import { TRANSACTION_TYPES, API_BASE_URL } from '../config/constants.js';
 
 export const DEMO_MODE = true;
 
@@ -71,8 +71,10 @@ export async function apiCall(action, payload = {}) {
     });
   }
 
+  const endpoint = import.meta.env.VITE_API_BASE_URL || API_BASE_URL;
+
   try {
-    const response = await fetch(import.meta.env.VITE_API_BASE_URL || '', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
